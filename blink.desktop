@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Blink Downloader
+Comment=Multi-connection fast file downloader for Fedora Linux & Google Chrome
+Exec=/home/sakibnjr/Desktop/blink/run.sh %U
+Icon=/home/sakibnjr/Desktop/blink/app/icons/icon-128.png
+Terminal=false
+Type=Application
+Categories=Network;FileTransfer;
+MimeType=x-scheme-handler/magnet;
+StartupNotify=true

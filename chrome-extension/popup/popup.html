@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blink Downloader</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="brand">
+        <img src="../icons/icon-32.png" alt="Blink Logo" class="brand-logo">
+        <div class="brand-text">
+          <h1>Blink</h1>
+          <span class="subtitle">Fedora Downloader</span>
+        </div>
+      </div>
+      <div id="statusBadge" class="status-badge disconnected" title="Desktop App Status">
+        <span class="status-dot"></span>
+        <span id="statusText">Offline</span>
+      </div>
+    </header>
+
+    <!-- Quick Add Section -->
+    <section class="add-section">
+      <div class="input-group">
+        <input type="text" id="urlInput" placeholder="Paste download URL or Magnet link..." autocomplete="off" spellcheck="false">
+        <button id="addBtn" class="primary-btn" title="Start Download">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+            <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/>
+          </svg>
+          Download
+        </button>
+      </div>
+      <div class="quick-actions">
+        <button id="pasteTabBtn" class="link-btn">
+          ⚡ Download Current Tab URL
+        </button>
+      </div>
+    </section>
+
+    <!-- Overall Stats Banner -->
+    <div id="statsBanner" class="stats-banner hidden">
+      <div class="stat-item">
+        <span class="stat-label">Total Speed</span>
+        <span id="totalSpeed" class="stat-val">0 KB/s</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Active</span>
+        <span id="activeCount" class="stat-val">0</span>
+      </div>
+    </div>
+
+    <!-- Active Downloads List -->
+    <section class="downloads-section">
+      <div class="section-header">
+        <h2>Active Downloads</h2>
+        <button id="refreshBtn" class="icon-btn" title="Refresh">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+        </button>
+      </div>
+      <div id="downloadsList" class="downloads-list">
+        <div class="empty-state">
+          <span class="empty-icon">⚡</span>
+          <p>No active downloads in Blink</p>
+          <small>Right-click any link in Chrome to download</small>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="app-hint" id="appHint">
+        <span>Blink App running on <code>127.0.0.1:9632</code></span>
+      </div>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
