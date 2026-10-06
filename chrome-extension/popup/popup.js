@@ -29,8 +29,12 @@ async function fetchStatus() {
   const downloadsList = document.getElementById('downloadsList');
 
   try {
-    const response = await fetch(`${BLINK_API_BASE}/api/status`, { cache: 'no-store' });
-    if (!response.ok) throw new Error('Non-200 status');
+    const response = await fetch(`${BLINK_API_BASE}/api/status`, {
+      method: 'GET',
+      mode: 'cors',
+      cache: 'no-store'
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
     const data = await response.json();
 
@@ -56,7 +60,8 @@ async function fetchStatus() {
         </div>
       `;
     }
-  } catch {
+  } catch (err) {
+    console.warn('Blink status check:', err);
     // App is offline
     statusBadge.className = 'status-badge disconnected';
     statusText.textContent = 'Offline';
