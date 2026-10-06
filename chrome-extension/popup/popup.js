@@ -184,7 +184,7 @@ async function triggerDownload(url) {
 }
 
 // Initial setup
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const addBtn = document.getElementById('addBtn');
   const urlInput = document.getElementById('urlInput');
   const refreshBtn = document.getElementById('refreshBtn');
