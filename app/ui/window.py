@@ -17,6 +17,7 @@ from gi.repository import Gtk, Adw, Gdk, Gio, GLib
 from app.ui.download_row import DownloadRow, format_bytes, format_speed
 from app.ui.add_dialog import AddDownloadDialog
 from app.ui.preferences import PreferencesWindow
+from app.config import config_manager, CATEGORIES
 
 CSS_STYLES = """
 /* Blink Downloader Custom Styling */
@@ -110,7 +111,12 @@ class MainWindow(Adw.ApplicationWindow):
         # Track known states to trigger completion notifications
         self.last_known_status = {}
         self.current_filter = "all"
+        self.category_filter = "all"
         self.search_query = ""
+        self._shown_background_hint = False
+
+        # Close-request: minimize to background if enabled
+        self.connect("close-request", self._on_close_request)
 
         # Load custom CSS
         self._apply_css()
@@ -209,8 +215,10 @@ class MainWindow(Adw.ApplicationWindow):
 
         menu = Gio.Menu()
         menu.append("Open Downloads Folder", "win.open_downloads")
+        menu.append("Open Categories Folders", "win.open_categories")
         menu.append("Chrome Extension Setup", "win.chrome_setup")
         menu.append("About Blink", "win.about")
+        menu.append("Quit Blink (Ctrl+Q)", "win.quit")
         menu_btn.set_menu_model(menu)
 
         self._setup_actions()
@@ -223,6 +231,10 @@ class MainWindow(Adw.ApplicationWindow):
         open_dl_action.connect("activate", lambda a, p: self._open_downloads_folder())
         self.add_action(open_dl_action)
 
+        open_cat_action = Gio.SimpleAction.new("open_categories", None)
+        open_cat_action.connect("activate", lambda a, p: self._open_categories_folder())
+        self.add_action(open_cat_action)
+
         chrome_action = Gio.SimpleAction.new("chrome_setup", None)
         chrome_action.connect("activate", lambda a, p: self._open_preferences())
         self.add_action(chrome_action)
@@ -231,6 +243,11 @@ class MainWindow(Adw.ApplicationWindow):
         about_action.connect("activate", lambda a, p: self._show_about_dialog())
         self.add_action(about_action)
 
+        quit_action = Gio.SimpleAction.new("quit", None)
+        quit_action.connect("activate", lambda a, p: self.get_application().quit_app())
+        self.add_action(quit_action)
+        self.get_application().set_accels_for_action("win.quit", ["<Control>q"])
+
     def _build_toolbar(self):
         toolbar_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
         toolbar_box.set_margin_top(8)
@@ -238,7 +255,7 @@ class MainWindow(Adw.ApplicationWindow):
         toolbar_box.set_margin_start(14)
         toolbar_box.set_margin_end(14)
 
-        # Filter Segmented Buttons
+        # Filter Segmented Buttons (Status)
         filter_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
         filter_box.add_css_class("linked")
 
@@ -260,6 +277,12 @@ class MainWindow(Adw.ApplicationWindow):
         filter_box.append(self.btn_paused)
 
         toolbar_box.append(filter_box)
+
+        # Category Filter DropDown
+        self.cat_model = Gtk.StringList.new(["All Categories", "Videos", "Music", "Archives", "Documents", "Packages"])
+        self.cat_dropdown = Gtk.DropDown.new(self.cat_model, None)
+        self.cat_dropdown.connect("notify::selected-item", self._on_category_changed)
+        toolbar_box.append(self.cat_dropdown)
 
         # Search Entry
         self.search_entry = Gtk.SearchEntry()
@@ -357,19 +380,34 @@ class MainWindow(Adw.ApplicationWindow):
         self.search_query = entry.get_text().lower().strip()
         self.list_box.invalidate_filter()
 
+    def _on_category_changed(self, dropdown, param):
+        item = dropdown.get_selected_item()
+        if item:
+            val = item.get_string()
+            self.category_filter = "all" if val == "All Categories" else val
+            self.list_box.invalidate_filter()
+
     def _list_filter_func(self, row):
         if not isinstance(row, DownloadRow):
             return True
 
         status = row.data.get("status", "")
 
-        # Category filter
+        # Status filter
         if self.current_filter == "active" and status != "active":
             return False
         if self.current_filter == "complete" and status != "complete":
             return False
         if self.current_filter == "paused" and status not in ("paused", "waiting"):
             return False
+
+        # Category filter
+        if self.category_filter != "all":
+            allowed_exts = CATEGORIES.get(self.category_filter, set())
+            fname = row.filename or ""
+            ext = os.path.splitext(fname)[1].lower()
+            if ext not in allowed_exts:
+                return False
 
         # Search query filter
         if self.search_query:
@@ -507,3 +545,27 @@ class MainWindow(Adw.ApplicationWindow):
             license_type=Gtk.License.GPL_3_0
         )
         about.present()
+
+    def _on_close_request(self, window):
+        if config_manager.get("run_in_background", True):
+            self.hide()
+            if not self._shown_background_hint:
+                self._shown_background_hint = True
+                if self.notifier:
+                    self.notifier.notify_info(
+                        "Blink Running in Background ⚡",
+                        "Blink will keep downloading and catching Chrome downloads. Press Ctrl+Q or use the menu to quit."
+                    )
+            return True
+        self.get_application().quit_app()
+        return False
+
+    def _open_categories_folder(self):
+        base_dir = self.engine.download_dir
+        for cat in CATEGORIES.keys():
+            os.makedirs(os.path.join(base_dir, cat), exist_ok=True)
+        try:
+            subprocess.Popen(["xdg-open", base_dir])
+        except Exception as e:
+            print(f"Failed to open category folders: {e}")
+

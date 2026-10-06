@@ -10,12 +10,13 @@ import socket
 import urllib.request
 import subprocess
 from pathlib import Path
+from app.config import config_manager
 
 
 class DownloadEngine:
     def __init__(self, rpc_port=6800, download_dir=None):
         self.rpc_port = rpc_port
-        self.download_dir = download_dir or str(Path.home() / "Downloads")
+        self.download_dir = download_dir or config_manager.get("download_dir", str(Path.home() / "Downloads"))
         self.rpc_url = f"http://127.0.0.1:{self.rpc_port}/jsonrpc"
         self.process = None
         self.rpc_secret = None
@@ -109,10 +110,15 @@ class DownloadEngine:
         """Adds a new download URI (or list of URIs) with optional download options."""
         if isinstance(uris, str):
             uris = [uris]
+        
+        # Route to auto-categorized directory if not explicitly overridden
+        target_dir = options.get("dir") if (options and "dir" in options) else config_manager.get_target_directory(uris[0])
+        conns = str(config_manager.get("connections_per_server", 16))
+
         opts = {
-            "dir": self.download_dir,
-            "max-connection-per-server": "16",
-            "split": "16"
+            "dir": target_dir,
+            "max-connection-per-server": conns,
+            "split": conns
         }
         if options:
             opts.update(options)

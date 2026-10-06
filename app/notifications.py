@@ -68,3 +68,13 @@ class NotificationManager:
             notif.show()
         except Exception as e:
             print(f"[Notify] Error showing error notification: {e}")
+
+    def notify_info(self, title: str, message: str):
+        if not self.initialized:
+            return
+        try:
+            notif = Notify.Notification.new(title, message, "dialog-information")
+            notif.show()
+        except Exception as e:
+            print(f"[Notify] Error showing info notification: {e}")
+

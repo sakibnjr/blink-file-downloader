@@ -10,6 +10,7 @@ gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 gi.require_version('Gio', '2.0')
 from gi.repository import Gtk, Adw, Gio
+from app.config import config_manager
 
 
 class PreferencesWindow(Adw.PreferencesWindow):
@@ -43,6 +44,23 @@ class PreferencesWindow(Adw.PreferencesWindow):
         browse_btn.connect("clicked", self._on_choose_folder)
         self.folder_row.add_suffix(browse_btn)
         dl_group.add(self.folder_row)
+
+        # Auto-Categorization Switch
+        self.categorize_row = Adw.SwitchRow()
+        self.categorize_row.set_title("Automatic File Categorization")
+        self.categorize_row.set_subtitle("Automatically sort finished files into Videos, Music, Archives, Documents, Packages")
+        self.categorize_row.set_active(config_manager.get("auto_categorize", True))
+        self.categorize_row.connect("notify::active", lambda r, p: config_manager.set("auto_categorize", r.get_active()))
+        dl_group.add(self.categorize_row)
+
+        # Background Daemon Switch
+        self.bg_row = Adw.SwitchRow()
+        self.bg_row.set_title("Keep Running in Background")
+        self.bg_row.set_subtitle("Closing the window minimizes to background so Chrome is always connected")
+        self.bg_row.set_active(config_manager.get("run_in_background", True))
+        self.bg_row.connect("notify::active", lambda r, p: config_manager.set("run_in_background", r.get_active()))
+        dl_group.add(self.bg_row)
+
         general_page.add(dl_group)
 
         # Acceleration Group

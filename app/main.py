@@ -21,6 +21,7 @@ from gi.repository import Gtk, Adw, Gio, GLib
 from app.engine import DownloadEngine
 from app.server import BlinkAPIServer
 from app.notifications import NotificationManager
+from app.config import config_manager
 from app.ui.window import MainWindow
 
 
@@ -34,9 +35,15 @@ class BlinkApp(Adw.Application):
         self.server = None
         self.notifier = None
         self.main_window = None
+        self.is_held = False
 
     def do_startup(self):
         Adw.Application.do_startup(self)
+
+        # Hold application so it remains active in background even when window is closed
+        if not self.is_held:
+            self.hold()
+            self.is_held = True
 
         # Initialize Notification Manager
         self.notifier = NotificationManager("Blink Downloader")
@@ -52,9 +59,16 @@ class BlinkApp(Adw.Application):
             engine=self.engine,
             notifier=self.notifier,
             host="127.0.0.1",
-            port=9632
+            port=9632,
+            ui_callback=self._on_server_event
         )
         self.server.start()
+
+    def _on_server_event(self, event, data):
+        if event == "open_window":
+            GLib.idle_add(self.activate)
+        elif self.main_window and hasattr(self.main_window, "_on_server_event"):
+            self.main_window._on_server_event(event, data)
 
     def do_activate(self):
         if not self.main_window:
@@ -82,6 +96,19 @@ class BlinkApp(Adw.Application):
                         print(f"[Blink] Error adding CLI download {arg}: {e}")
 
         return 0
+
+    def quit_app(self):
+        """Cleanly quits the application and daemon services."""
+        print("[Blink] Explicit quit requested.")
+        if self.main_window:
+            self.main_window.destroy()
+            self.main_window = None
+
+        if self.is_held:
+            self.release()
+            self.is_held = False
+
+        self.quit()
 
     def do_shutdown(self):
         print("[Blink] Shutting down Blink services...")

@@ -147,6 +147,12 @@ class BlinkAPIHandler(BaseHTTPRequestHandler):
                 self._set_headers(500)
                 self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
 
+        elif path in ("/api/open_window", "/open"):
+            if self.ui_callback:
+                self.ui_callback("open_window", None)
+            self._set_headers(200)
+            self.wfile.write(json.dumps({"success": True}).encode("utf-8"))
+
         else:
             self._set_headers(404)
             self.wfile.write(json.dumps({"error": "Not Found"}).encode("utf-8"))

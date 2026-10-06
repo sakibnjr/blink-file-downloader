@@ -220,6 +220,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     await chrome.storage.local.set({ autoIntercept: autoInterceptToggle.checked });
   });
 
+  // Open Desktop App Window
+  const openAppBtn = document.getElementById('openAppBtn');
+  if (openAppBtn) {
+    openAppBtn.addEventListener('click', async () => {
+      try {
+        await fetch(`${BLINK_API_BASE}/api/open_window`, { method: 'POST', mode: 'cors' });
+      } catch (err) {
+        console.warn('Could not open Blink window:', err);
+      }
+    });
+  }
+
   // Initial fetch and polling
   fetchStatus();
   pollTimer = setInterval(fetchStatus, 1500);
