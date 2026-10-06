@@ -1,8 +1,14 @@
 // Blink Downloader - Chrome Extension Service Worker (Manifest V3)
 const BLINK_API_BASE = 'http://127.0.0.1:9632';
 
-// Set up context menus on extension installation
-chrome.runtime.onInstalled.addListener(() => {
+// Set up context menus and defaults on extension installation
+chrome.runtime.onInstalled.addListener(async () => {
+  // Enable auto interception by default
+  const { autoIntercept } = await chrome.storage.local.get('autoIntercept');
+  if (autoIntercept === undefined) {
+    await chrome.storage.local.set({ autoIntercept: true });
+  }
+
   chrome.contextMenus.create({
     id: 'blink-download-link',
     title: 'Download with Blink ⚡',
@@ -20,6 +26,44 @@ chrome.runtime.onInstalled.addListener(() => {
     title: 'Download Current Page / Selection with Blink ⚡',
     contexts: ['selection', 'page']
   });
+});
+
+// Automatic Chrome Download Interception
+chrome.downloads.onCreated.addListener(async (downloadItem) => {
+  const { autoIntercept = true } = await chrome.storage.local.get('autoIntercept');
+  if (!autoIntercept) return;
+
+  const url = downloadItem.finalUrl || downloadItem.url;
+  if (!url || url.startsWith('chrome:') || url.startsWith('chrome-extension:') || url.startsWith('blob:') || url.startsWith('data:')) {
+    return;
+  }
+
+  // Check if Blink API server is running before cancelling Chrome's download
+  try {
+    const res = await fetch(`${BLINK_API_BASE}/api/status`, { cache: 'no-store' });
+    if (!res.ok) return;
+  } catch (err) {
+    // Blink app is offline: let Chrome download normally
+    return;
+  }
+
+  // Cancel and erase from Chrome's default download manager
+  try {
+    await chrome.downloads.cancel(downloadItem.id);
+    await chrome.downloads.erase({ id: downloadItem.id });
+  } catch (err) {
+    console.warn('Could not cancel Chrome download:', err);
+  }
+
+  // Send download to Blink
+  const result = await sendToBlink(url, downloadItem.referrer, downloadItem.filename);
+  if (result.success) {
+    await flashBadge('⚡', '#10b981');
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.id) {
+      await showTabNotification(tab.id, `Intercepted & sent to Blink Downloader ⚡`, 'success');
+    }
+  }
 });
 
 // Helper: send download URL to Blink native app

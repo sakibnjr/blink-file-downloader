@@ -207,6 +207,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Load and sync auto-intercept toggle
+  const autoInterceptToggle = document.getElementById('autoInterceptToggle');
+  const { autoIntercept } = await chrome.storage.local.get('autoIntercept');
+  autoInterceptToggle.checked = autoIntercept !== false;
+  autoInterceptToggle.addEventListener('change', async () => {
+    await chrome.storage.local.set({ autoIntercept: autoInterceptToggle.checked });
+  });
+
   // Initial fetch and polling
   fetchStatus();
   pollTimer = setInterval(fetchStatus, 1500);
