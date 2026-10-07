@@ -36,6 +36,9 @@ class DownloadEngine:
             print(f"[Engine] Port {self.rpc_port} already in use; assuming existing aria2c instance.")
             return True
 
+        conns = int(config_manager.get("connections_per_server", 16))
+        max_concurrent = int(config_manager.get("max_concurrent", 5))
+
         cmd = [
             "aria2c",
             "--enable-rpc=true",
@@ -43,13 +46,13 @@ class DownloadEngine:
             "--rpc-listen-all=false",
             "--rpc-allow-origin-all=true",
             f"--dir={self.download_dir}",
-            "--max-connection-per-server=16",
-            "--split=16",
+            f"--max-connection-per-server={min(conns, 16)}",
+            f"--split={conns}",
             "--min-split-size=1M",
             "--continue=true",
             "--auto-file-renaming=true",
             "--allow-overwrite=false",
-            "--max-concurrent-downloads=5",
+            f"--max-concurrent-downloads={max_concurrent}",
             "--file-allocation=none",
             "--summary-interval=0",
             "--quiet=true"
@@ -114,12 +117,12 @@ class DownloadEngine:
         
         # Route to auto-categorized directory if not explicitly overridden
         target_dir = options.get("dir") if (options and "dir" in options) else config_manager.get_target_directory(uris[0])
-        conns = str(config_manager.get("connections_per_server", 16))
+        conns = int(config_manager.get("connections_per_server", 16))
 
         opts = {
             "dir": target_dir,
-            "max-connection-per-server": conns,
-            "split": conns
+            "max-connection-per-server": str(min(conns, 16)),
+            "split": str(conns)
         }
         if options:
             opts.update(options)
@@ -208,12 +211,15 @@ class DownloadEngine:
             return False
 
         config_manager.set("speed_profile", profile_id)
+        configured_conns = int(config_manager.get("connections_per_server", 16))
+        conns = configured_conns if profile_id == "turbo" else profile["connections"]
         try:
             self.change_global_option({
                 "max-overall-download-limit": profile["down_limit"],
-                "max-connection-per-server": str(profile["connections"])
+                "max-connection-per-server": str(min(conns, 16)),
+                "split": str(conns)
             })
-            print(f"[Engine] Speed profile set to: {profile['name']} (limit: {profile['down_limit']})")
+            print(f"[Engine] Speed profile set to: {profile['name']} (limit: {profile['down_limit']}, conns: {conns})")
             return True
         except Exception as e:
             print(f"[Engine] Failed to apply speed profile: {e}")

@@ -78,14 +78,15 @@ class PreferencesWindow(Adw.PreferencesWindow):
 
         self.threads_row = Adw.SpinRow.new_with_range(1, 32, 1)
         self.threads_row.set_title("Connections Per Server")
-        self.threads_row.set_subtitle("Number of simultaneous connections per file (default: 16)")
-        self.threads_row.set_value(16)
+        self.threads_row.set_subtitle("Parallel segments & connections (up to 32 split threads, max 16 per host)")
+        self.threads_row.set_value(config_manager.get("connections_per_server", 16))
+        self.threads_row.connect("changed", self._on_threads_changed)
         engine_group.add(self.threads_row)
 
         self.concurrent_row = Adw.SpinRow.new_with_range(1, 10, 1)
         self.concurrent_row.set_title("Maximum Active Downloads")
         self.concurrent_row.set_subtitle("Queue extra downloads if this limit is reached")
-        self.concurrent_row.set_value(5)
+        self.concurrent_row.set_value(config_manager.get("max_concurrent", 5))
         self.concurrent_row.connect("changed", self._on_concurrent_changed)
         engine_group.add(self.concurrent_row)
 
@@ -144,13 +145,13 @@ class PreferencesWindow(Adw.PreferencesWindow):
 
         self.max_down_row = Adw.SpinRow.new_with_range(0, 100000, 500)
         self.max_down_row.set_title("Max Download Speed (KB/s)")
-        self.max_down_row.set_value(0)
+        self.max_down_row.set_value(config_manager.get("max_download_limit", 0))
         self.max_down_row.connect("changed", self._on_speed_changed)
         limits_group.add(self.max_down_row)
 
         self.max_up_row = Adw.SpinRow.new_with_range(0, 50000, 200)
         self.max_up_row.set_title("Max Upload Speed (KB/s)")
-        self.max_up_row.set_value(0)
+        self.max_up_row.set_value(config_manager.get("max_upload_limit", 0))
         self.max_up_row.connect("changed", self._on_speed_changed)
         limits_group.add(self.max_up_row)
 
@@ -173,6 +174,7 @@ class PreferencesWindow(Adw.PreferencesWindow):
                 if path:
                     self.engine.download_dir = path
                     self.folder_row.set_subtitle(path)
+                    config_manager.set("download_dir", path)
                     try:
                         self.engine.change_global_option({"dir": path})
                     except Exception:
@@ -180,8 +182,20 @@ class PreferencesWindow(Adw.PreferencesWindow):
         except Exception as e:
             print(f"[Prefs] Folder selection failed: {e}")
 
+    def _on_threads_changed(self, spin):
+        val = int(spin.get_value())
+        config_manager.set("connections_per_server", val)
+        try:
+            self.engine.change_global_option({
+                "split": str(val),
+                "max-connection-per-server": str(min(val, 16))
+            })
+        except Exception as e:
+            print(f"[Prefs] Failed to set connections: {e}")
+
     def _on_concurrent_changed(self, spin):
         val = int(spin.get_value())
+        config_manager.set("max_concurrent", val)
         try:
             self.engine.change_global_option({"max-concurrent-downloads": str(val)})
         except Exception as e:
@@ -190,6 +204,8 @@ class PreferencesWindow(Adw.PreferencesWindow):
     def _on_speed_changed(self, spin):
         down = int(self.max_down_row.get_value())
         up = int(self.max_up_row.get_value())
+        config_manager.set("max_download_limit", down)
+        config_manager.set("max_upload_limit", up)
         try:
             opts = {
                 "max-overall-download-limit": f"{down}K" if down > 0 else "0",
