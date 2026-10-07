@@ -21,77 +21,241 @@ from app.config import config_manager, CATEGORIES, SPEED_PROFILES
 from app.clipboard import ClipboardMonitor
 
 CSS_STYLES = """
-/* Blink Downloader Custom Styling */
+/* Blink Downloader - 2026 Liquid Glass Design System */
+
+/* Window & View Styling */
+window.background {
+    background-color: #0b0f19;
+}
+
+.transparent-list {
+    background: transparent;
+}
+
+.transparent-list > row {
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    border: none;
+    box-shadow: none;
+}
+
+.transparent-list > row:hover {
+    background: transparent;
+}
+
+/* Liquid Glass Cards */
 .download-row {
-    background: alpha(@theme_base_color, 0.4);
-    border: 1px solid alpha(@borders, 0.5);
-    border-radius: 12px;
-    margin: 4px 8px;
-    transition: all 200ms ease-in-out;
+    background-color: rgba(22, 30, 49, 0.65);
+    background-image: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.75) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    margin: 6px 10px;
+    padding: 2px 4px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    transition: all 250ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .download-row:hover {
-    background: alpha(@theme_selected_bg_color, 0.08);
-    border-color: alpha(@theme_selected_bg_color, 0.3);
+    background-color: rgba(30, 45, 72, 0.75);
+    background-image: linear-gradient(135deg, rgba(38, 56, 88, 0.75) 0%, rgba(18, 28, 48, 0.85) 100%);
+    border-color: rgba(56, 189, 248, 0.4);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 0 20px rgba(56, 189, 248, 0.15);
 }
 
+/* File Icon Container */
+.file-icon-box {
+    background-color: rgba(56, 189, 248, 0.08);
+    background-image: linear-gradient(135deg, rgba(56, 189, 248, 0.16) 0%, rgba(99, 102, 241, 0.08) 100%);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: 14px;
+    padding: 10px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+/* Liquid Status Pills */
 .status-pill {
     font-size: 11px;
-    font-weight: 600;
-    padding: 2px 8px;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    padding: 3px 10px;
     border-radius: 9999px;
     border: 1px solid transparent;
 }
 
 .status-active {
-    background: alpha(#3b82f6, 0.15);
-    color: #60a5fa;
-    border-color: alpha(#3b82f6, 0.3);
+    background-color: rgba(14, 165, 233, 0.16);
+    color: #38bdf8;
+    border-color: rgba(56, 189, 248, 0.4);
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
 .status-complete {
-    background: alpha(#10b981, 0.15);
+    background-color: rgba(16, 185, 129, 0.16);
     color: #34d399;
-    border-color: alpha(#10b981, 0.3);
+    border-color: rgba(52, 211, 153, 0.4);
+    box-shadow: 0 0 12px rgba(52, 211, 153, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
 .status-paused {
-    background: alpha(#f59e0b, 0.15);
+    background-color: rgba(245, 158, 11, 0.16);
     color: #fbbf24;
-    border-color: alpha(#f59e0b, 0.3);
+    border-color: rgba(251, 191, 36, 0.4);
+    box-shadow: 0 0 12px rgba(251, 191, 36, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .status-error {
-    background: alpha(#ef4444, 0.15);
+    background-color: rgba(239, 68, 68, 0.16);
     color: #f87171;
-    border-color: alpha(#ef4444, 0.3);
+    border-color: rgba(248, 113, 113, 0.4);
 }
 
+/* Shimmer Progress Bar */
+progressbar.download-progress {
+    min-height: 8px;
+    padding: 0;
+}
+
+progressbar.download-progress trough {
+    min-height: 8px;
+    border-radius: 9999px;
+    background-color: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+progressbar.download-progress progress {
+    min-height: 8px;
+    border-radius: 9999px;
+    background-image: linear-gradient(to right, #06b6d4 0%, #3b82f6 50%, #8b5cf6 100%);
+    border: none;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+/* Action Buttons in Rows */
+.action-circle-btn {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 9999px;
+    padding: 7px;
+    color: #94a3b8;
+    transition: all 200ms cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.action-circle-btn:hover {
+    background-color: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), 0 0 12px rgba(56, 189, 248, 0.3);
+}
+
+.action-circle-btn.delete-btn:hover {
+    background-color: rgba(239, 68, 68, 0.2);
+    border-color: rgba(248, 113, 113, 0.45);
+    color: #fca5a5;
+    box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+}
+
+/* Speed Highlight Text */
 .speed-highlight {
-    font-weight: 700;
+    font-weight: 800;
     color: #38bdf8;
+    letter-spacing: 0.2px;
 }
 
+/* Speed Badge in HeaderBar */
 .speed-badge {
-    background: alpha(#2563eb, 0.18);
-    color: #60a5fa;
-    font-weight: 700;
+    background-color: rgba(14, 165, 233, 0.16);
+    background-image: linear-gradient(135deg, rgba(14, 165, 233, 0.22) 0%, rgba(99, 102, 241, 0.2) 100%);
+    color: #38bdf8;
+    font-weight: 800;
     font-size: 12px;
-    padding: 4px 10px;
-    border-radius: 14px;
-    border: 1px solid alpha(#3b82f6, 0.3);
+    padding: 5px 12px;
+    border-radius: 9999px;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    transition: all 200ms ease;
 }
 
 .speed-badge.inactive {
-    background: alpha(@theme_fg_color, 0.06);
-    color: alpha(@theme_fg_color, 0.5);
-    border-color: transparent;
+    background-color: rgba(255, 255, 255, 0.04);
+    background-image: none;
+    color: rgba(255, 255, 255, 0.4);
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: none;
 }
 
+/* Speed Profile Switcher Pill */
+.profile-pill-btn {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 9999px;
+    padding: 4px 12px;
+    font-weight: 600;
+    font-size: 12px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    transition: all 200ms ease;
+}
+
+.profile-pill-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(56, 189, 248, 0.35);
+}
+
+/* Suggested Action Add Button */
+.suggested-action-liquid {
+    background-color: #0ea5e9;
+    background-image: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+    color: #ffffff;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 14px rgba(14, 165, 233, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    transition: all 200ms ease;
+}
+
+.suggested-action-liquid:hover {
+    background-image: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+    box-shadow: 0 6px 20px rgba(14, 165, 233, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+/* Filter Segmented Buttons */
+.filter-group {
+    background-color: rgba(15, 23, 42, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 12px;
+    padding: 3px;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.filter-group button {
+    border-radius: 9px;
+    border: none;
+    color: #94a3b8;
+    font-weight: 600;
+    font-size: 12px;
+    padding: 5px 12px;
+    background: transparent;
+    transition: all 200ms ease;
+}
+
+.filter-group button:hover {
+    color: #f1f5f9;
+}
+
+.filter-group button:checked {
+    background-color: rgba(56, 189, 248, 0.18);
+    background-image: linear-gradient(135deg, rgba(56, 189, 248, 0.25) 0%, rgba(99, 102, 241, 0.22) 100%);
+    color: #ffffff;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Bottom Status Bar */
 .bottom-status-bar {
-    background: alpha(@theme_base_color, 0.6);
-    border-top: 1px solid alpha(@borders, 0.6);
-    padding: 6px 14px;
+    background-color: rgba(15, 23, 42, 0.75);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 8px 16px;
 }
 """
 
@@ -192,7 +356,7 @@ class MainWindow(Adw.ApplicationWindow):
         # Add Download Button (Primary / Suggested)
         add_btn = Gtk.Button.new_from_icon_name("list-add-symbolic")
         add_btn.set_tooltip_text("Add New Download (Ctrl+N)")
-        add_btn.add_css_class("suggested-action")
+        add_btn.add_css_class("suggested-action-liquid")
         add_btn.connect("clicked", lambda b: self._open_add_dialog())
         header.pack_start(add_btn)
 
@@ -206,7 +370,7 @@ class MainWindow(Adw.ApplicationWindow):
         # Speed Profile Switcher Button
         self.profile_btn = Gtk.MenuButton()
         self.profile_btn.set_tooltip_text("Speed Profile (Bandwidth Throttler)")
-        self.profile_btn.add_css_class("flat")
+        self.profile_btn.add_css_class("profile-pill-btn")
 
         profile_menu = Gio.Menu()
         profile_menu.append("Turbo 🚀 (Unlimited)", "win.profile_turbo")
@@ -288,8 +452,8 @@ class MainWindow(Adw.ApplicationWindow):
         toolbar_box.set_margin_end(14)
 
         # Filter Segmented Buttons (Status)
-        filter_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
-        filter_box.add_css_class("linked")
+        filter_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=3)
+        filter_box.add_css_class("filter-group")
 
         self.btn_all = Gtk.ToggleButton(label="All (0)")
         self.btn_all.set_active(True)
@@ -330,14 +494,14 @@ class MainWindow(Adw.ApplicationWindow):
         status_page.set_icon_name("folder-download-symbolic")
         status_page.set_title("No Downloads")
         status_page.set_description(
-            "Ready to accelerate your downloads on Fedora.\n"
-            "Right-click any link or media in Google Chrome to download instantly,\n"
+            "Ready to accelerate your downloads on Fedora.\\n"
+            "Right-click any link or media in Google Chrome to download instantly,\\n"
             "or click 'Add Download' to paste a URL."
         )
 
         add_btn = Gtk.Button(label="Add Download URL ⚡")
         add_btn.set_halign(Gtk.Align.CENTER)
-        add_btn.add_css_class("suggested-action")
+        add_btn.add_css_class("suggested-action-liquid")
         add_btn.add_css_class("pill")
         add_btn.connect("clicked", lambda b: self._open_add_dialog())
         status_page.set_child(add_btn)
@@ -351,7 +515,7 @@ class MainWindow(Adw.ApplicationWindow):
 
         self.list_box = Gtk.ListBox()
         self.list_box.set_selection_mode(Gtk.SelectionMode.NONE)
-        self.list_box.add_css_class("boxed-list")
+        self.list_box.add_css_class("transparent-list")
         self.list_box.set_margin_start(10)
         self.list_box.set_margin_end(10)
         self.list_box.set_margin_bottom(10)

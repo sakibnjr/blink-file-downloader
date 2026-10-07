@@ -97,11 +97,15 @@ class DownloadRow(Gtk.ListBoxRow):
         main_box.set_margin_start(14)
         main_box.set_margin_end(14)
 
-        # File Icon
+        # File Icon with Frosted Squircle Container
+        icon_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        icon_box.set_valign(Gtk.Align.CENTER)
+        icon_box.add_css_class("file-icon-box")
         self.icon_image = Gtk.Image.new_from_icon_name("folder-download-symbolic")
-        self.icon_image.set_pixel_size(36)
+        self.icon_image.set_pixel_size(28)
         self.icon_image.add_css_class("accent-icon")
-        main_box.append(self.icon_image)
+        icon_box.append(self.icon_image)
+        main_box.append(icon_box)
 
         # Info Box (Center)
         info_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=5)
@@ -168,16 +172,14 @@ class DownloadRow(Gtk.ListBoxRow):
         # Pause / Resume Button
         self.toggle_btn = Gtk.Button.new_from_icon_name("media-playback-pause-symbolic")
         self.toggle_btn.set_tooltip_text("Pause Download")
-        self.toggle_btn.add_css_class("flat")
-        self.toggle_btn.add_css_class("circular")
+        self.toggle_btn.add_css_class("action-circle-btn")
         self.toggle_btn.connect("clicked", self._on_toggle_clicked)
         actions_box.append(self.toggle_btn)
 
         # Open File Button
         self.open_file_btn = Gtk.Button.new_from_icon_name("document-open-symbolic")
         self.open_file_btn.set_tooltip_text("Open File")
-        self.open_file_btn.add_css_class("flat")
-        self.open_file_btn.add_css_class("circular")
+        self.open_file_btn.add_css_class("action-circle-btn")
         self.open_file_btn.set_visible(False)
         self.open_file_btn.connect("clicked", self._on_open_file_clicked)
         actions_box.append(self.open_file_btn)
@@ -185,16 +187,15 @@ class DownloadRow(Gtk.ListBoxRow):
         # Show in Folder Button
         self.open_folder_btn = Gtk.Button.new_from_icon_name("folder-open-symbolic")
         self.open_folder_btn.set_tooltip_text("Show in Folder")
-        self.open_folder_btn.add_css_class("flat")
-        self.open_folder_btn.add_css_class("circular")
+        self.open_folder_btn.add_css_class("action-circle-btn")
         self.open_folder_btn.connect("clicked", self._on_open_folder_clicked)
         actions_box.append(self.open_folder_btn)
 
         # Delete / Cancel Button
         self.delete_btn = Gtk.Button.new_from_icon_name("edit-delete-symbolic")
         self.delete_btn.set_tooltip_text("Cancel & Remove")
-        self.delete_btn.add_css_class("flat")
-        self.delete_btn.add_css_class("circular")
+        self.delete_btn.add_css_class("action-circle-btn")
+        self.delete_btn.add_css_class("delete-btn")
         self.delete_btn.connect("clicked", self._on_delete_clicked)
         actions_box.append(self.delete_btn)
 
