@@ -17,7 +17,8 @@ from gi.repository import Gtk, Adw, Gdk, Gio, GLib
 from app.ui.download_row import DownloadRow, format_bytes, format_speed
 from app.ui.add_dialog import AddDownloadDialog
 from app.ui.preferences import PreferencesWindow
-from app.config import config_manager, CATEGORIES
+from app.config import config_manager, CATEGORIES, SPEED_PROFILES
+from app.clipboard import ClipboardMonitor
 
 CSS_STYLES = """
 /* Blink Downloader Custom Styling */
@@ -121,6 +122,13 @@ class MainWindow(Adw.ApplicationWindow):
         # Load custom CSS
         self._apply_css()
 
+        # Clipboard Monitor for automatic link detection
+        self.clipboard_monitor = ClipboardMonitor(
+            engine=self.engine,
+            notifier=self.notifier,
+            on_link_detected=self._on_clipboard_link_detected
+        )
+
         # Connect server callback to refresh immediately on download added
         if self.server:
             self.server.ui_callback = self._on_server_event
@@ -195,6 +203,24 @@ class MainWindow(Adw.ApplicationWindow):
         clear_btn.connect("clicked", self._on_clear_completed)
         header.pack_start(clear_btn)
 
+        # Speed Profile Switcher Button
+        self.profile_btn = Gtk.MenuButton()
+        self.profile_btn.set_tooltip_text("Speed Profile (Bandwidth Throttler)")
+        self.profile_btn.add_css_class("flat")
+
+        profile_menu = Gio.Menu()
+        profile_menu.append("Turbo 🚀 (Unlimited)", "win.profile_turbo")
+        profile_menu.append("Balanced ⚖️ (3 MB/s)", "win.profile_balanced")
+        profile_menu.append("Background 🌙 (500 KB/s)", "win.profile_background")
+        self.profile_btn.set_menu_model(profile_menu)
+
+        curr_pid = self.engine.get_speed_profile() if self.engine else "turbo"
+        curr_name = SPEED_PROFILES.get(curr_pid, {}).get("name", "Turbo 🚀")
+        self.profile_label = Gtk.Label(label=curr_name)
+        self.profile_label.add_css_class("caption")
+        self.profile_btn.set_child(self.profile_label)
+        header.pack_end(self.profile_btn)
+
         # Speed Badge Pill
         self.speed_badge = Gtk.Label(label="⚡ 0 KB/s")
         self.speed_badge.add_css_class("speed-badge")
@@ -227,6 +253,12 @@ class MainWindow(Adw.ApplicationWindow):
         return header
 
     def _setup_actions(self):
+        # Speed profile actions
+        for p_id in ("turbo", "balanced", "background"):
+            act = Gio.SimpleAction.new(f"profile_{p_id}", None)
+            act.connect("activate", lambda a, p, pid=p_id: self._set_speed_profile(pid))
+            self.add_action(act)
+
         open_dl_action = Gio.SimpleAction.new("open_downloads", None)
         open_dl_action.connect("activate", lambda a, p: self._open_downloads_folder())
         self.add_action(open_dl_action)
@@ -505,8 +537,27 @@ class MainWindow(Adw.ApplicationWindow):
         return True  # Keep GLib timer active
 
     def _on_server_event(self, event_type, data):
-        # Called from HTTP server when Chrome extension triggers download
-        GLib.idle_add(self._poll_engine)
+        # Called from HTTP server when Chrome extension triggers download or profile change
+        if event_type == "profile_changed":
+            GLib.idle_add(self._update_profile_ui, data)
+        else:
+            GLib.idle_add(self._poll_engine)
+
+    def _set_speed_profile(self, profile_id):
+        if self.engine:
+            self.engine.set_speed_profile(profile_id)
+        self._update_profile_ui(profile_id)
+
+    def _update_profile_ui(self, profile_id):
+        profile = SPEED_PROFILES.get(profile_id, {})
+        name = profile.get("name", "Turbo 🚀")
+        self.profile_label.set_text(name)
+
+    def _on_clipboard_link_detected(self, url, filename):
+        if self.is_visible():
+            dialog = AddDownloadDialog(self, self.engine, on_added_cb=lambda gid: self._poll_engine())
+            dialog.url_row.set_text(url)
+            dialog.present()
 
     def _on_row_action(self):
         GLib.idle_add(self._poll_engine)

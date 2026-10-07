@@ -78,3 +78,23 @@ class NotificationManager:
         except Exception as e:
             print(f"[Notify] Error showing info notification: {e}")
 
+    def notify_clipboard(self, url: str, filename: str, on_download_action=None):
+        if not self.initialized:
+            return
+        try:
+            body = f"{filename}\nClick to start multi-connection download."
+            notif = Notify.Notification.new("Download Link Detected 📋", body, "emblem-downloads")
+
+            if on_download_action:
+                def _download_cb(n, action):
+                    on_download_action(url)
+
+                try:
+                    notif.add_action("download_now", "Download ⚡", _download_cb)
+                except Exception:
+                    pass
+
+            notif.show()
+        except Exception as e:
+            print(f"[Notify] Error showing clipboard notification: {e}")
+

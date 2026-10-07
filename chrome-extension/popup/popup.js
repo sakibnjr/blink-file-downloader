@@ -45,6 +45,13 @@ async function fetchStatus() {
     const activeList = data.active_downloads || [];
     const globalSpeed = data.download_speed || 0;
 
+    // Update active speed profile buttons
+    if (data.speed_profile) {
+      document.querySelectorAll('.profile-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.profile === data.speed_profile);
+      });
+    }
+
     if (activeList.length > 0) {
       statsBanner.classList.remove('hidden');
       totalSpeedEl.textContent = formatSpeed(globalSpeed);
@@ -218,6 +225,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   autoInterceptToggle.checked = autoIntercept !== false;
   autoInterceptToggle.addEventListener('change', async () => {
     await chrome.storage.local.set({ autoIntercept: autoInterceptToggle.checked });
+  });
+
+  // Speed Profile Switcher Buttons
+  document.querySelectorAll('.profile-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const profile = btn.dataset.profile;
+      document.querySelectorAll('.profile-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      try {
+        await fetch(`${BLINK_API_BASE}/api/profile`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ profile }),
+          mode: 'cors'
+        });
+      } catch (e) {
+        console.warn('Failed to switch speed profile:', e);
+      }
+    });
   });
 
   // Open Desktop App Window

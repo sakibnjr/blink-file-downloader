@@ -225,3 +225,20 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     updateBadgeStatus();
   }
 });
+
+// Handle messages from content scripts (like media sniffer)
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === 'download_media') {
+    (async () => {
+      const result = await sendToBlink(request.url, sender.tab?.url, request.title);
+      if (result.success) {
+        await flashBadge('⚡', '#10b981');
+        if (sender.tab?.id) {
+          await showTabNotification(sender.tab.id, `Queued media in Blink: ${request.title || 'Video'}`, 'success');
+        }
+      }
+      sendResponse(result);
+    })();
+    return true; // Keep channel open for async response
+  }
+});

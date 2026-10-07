@@ -64,6 +64,7 @@ class DownloadEngine:
             # Give aria2c a moment to bind port
             time.sleep(0.4)
             print(f"[Engine] aria2c daemon started on port {self.rpc_port} (PID: {self.process.pid})")
+            self.apply_saved_profile()
             return True
         except Exception as e:
             print(f"[Engine] Error starting aria2c: {e}")
@@ -191,3 +192,36 @@ class DownloadEngine:
             return self._call("purgeDownloadResult")
         except Exception:
             return None
+
+    def change_global_option(self, options):
+        try:
+            return self._call("changeGlobalOption", [options])
+        except Exception as e:
+            print(f"[Engine] changeGlobalOption error: {e}")
+            return None
+
+
+    def set_speed_profile(self, profile_id):
+        from app.config import SPEED_PROFILES
+        profile = SPEED_PROFILES.get(profile_id)
+        if not profile:
+            return False
+
+        config_manager.set("speed_profile", profile_id)
+        try:
+            self.change_global_option({
+                "max-overall-download-limit": profile["down_limit"],
+                "max-connection-per-server": str(profile["connections"])
+            })
+            print(f"[Engine] Speed profile set to: {profile['name']} (limit: {profile['down_limit']})")
+            return True
+        except Exception as e:
+            print(f"[Engine] Failed to apply speed profile: {e}")
+            return False
+
+    def get_speed_profile(self):
+        return config_manager.get("speed_profile", "turbo")
+
+    def apply_saved_profile(self):
+        current = self.get_speed_profile()
+        self.set_speed_profile(current)

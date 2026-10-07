@@ -19,10 +19,36 @@ CATEGORIES = {
     "Packages": {".rpm", ".deb", ".iso", ".img", ".AppImage", ".flatpakref"}
 }
 
+SPEED_PROFILES = {
+    "turbo": {
+        "id": "turbo",
+        "name": "Turbo 🚀",
+        "down_limit": "0",
+        "connections": 16,
+        "description": "Unlimited maximum speed (16 connections)"
+    },
+    "balanced": {
+        "id": "balanced",
+        "name": "Balanced ⚖️",
+        "down_limit": "3M",
+        "connections": 8,
+        "description": "Throttled to 3 MB/s for smooth web browsing"
+    },
+    "background": {
+        "id": "background",
+        "name": "Background 🌙",
+        "down_limit": "500K",
+        "connections": 4,
+        "description": "Quiet 500 KB/s background download"
+    }
+}
+
 DEFAULT_CONFIG = {
     "download_dir": str(Path.home() / "Downloads"),
     "auto_categorize": True,
     "run_in_background": True,
+    "clipboard_detection": True,
+    "speed_profile": "turbo",
     "max_concurrent": 5,
     "connections_per_server": 16,
     "max_download_limit": 0,

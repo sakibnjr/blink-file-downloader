@@ -61,6 +61,14 @@ class PreferencesWindow(Adw.PreferencesWindow):
         self.bg_row.connect("notify::active", lambda r, p: config_manager.set("run_in_background", r.get_active()))
         dl_group.add(self.bg_row)
 
+        # Smart Clipboard Detection Switch
+        self.clip_row = Adw.SwitchRow()
+        self.clip_row.set_title("Smart Clipboard Detection")
+        self.clip_row.set_subtitle("Automatically prompt when a download URL or magnet link is copied")
+        self.clip_row.set_active(config_manager.get("clipboard_detection", True))
+        self.clip_row.connect("notify::active", lambda r, p: config_manager.set("clipboard_detection", r.get_active()))
+        dl_group.add(self.clip_row)
+
         general_page.add(dl_group)
 
         # Acceleration Group

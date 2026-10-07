@@ -464,3 +464,50 @@ input:checked + .slider {
 input:checked + .slider:before {
   transform: translateX(14px);
 }
+
+/* Speed Profile Switcher */
+.profile-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+.profile-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.profile-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.profile-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 10.5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.profile-btn:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.profile-btn.active {
+  background: linear-gradient(135deg, #2563eb, #0284c7);
+  color: #ffffff;
+  border-color: rgba(56, 189, 248, 0.5);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+}
+

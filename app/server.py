@@ -38,6 +38,7 @@ class BlinkAPIHandler(BaseHTTPRequestHandler):
             try:
                 active = self.engine.tell_active() if self.engine else []
                 stats = self.engine.get_global_stat() if self.engine else {}
+                current_profile = self.engine.get_speed_profile() if self.engine else "turbo"
                 resp = {
                     "status": "online",
                     "app": "Blink Downloader",
@@ -47,10 +48,23 @@ class BlinkAPIHandler(BaseHTTPRequestHandler):
                     "upload_speed": int(stats.get("uploadSpeed", 0)),
                     "num_active": int(stats.get("numActive", 0)),
                     "num_waiting": int(stats.get("numWaiting", 0)),
-                    "num_stopped": int(stats.get("numStopped", 0))
+                    "num_stopped": int(stats.get("numStopped", 0)),
+                    "speed_profile": current_profile
                 }
                 self._set_headers(200)
                 self.wfile.write(json.dumps(resp).encode("utf-8"))
+            except Exception as e:
+                self._set_headers(500)
+                self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
+        elif path in ("/api/profile", "/profile"):
+            try:
+                from app.config import SPEED_PROFILES
+                current = self.engine.get_speed_profile() if self.engine else "turbo"
+                self._set_headers(200)
+                self.wfile.write(json.dumps({
+                    "current": current,
+                    "profiles": SPEED_PROFILES
+                }).encode("utf-8"))
             except Exception as e:
                 self._set_headers(500)
                 self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
@@ -143,6 +157,26 @@ class BlinkAPIHandler(BaseHTTPRequestHandler):
                 res = self.engine.remove(gid)
                 self._set_headers(200)
                 self.wfile.write(json.dumps({"success": True, "result": res}).encode("utf-8"))
+            except Exception as e:
+                self._set_headers(500)
+                self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
+
+        elif path in ("/api/profile", "/profile"):
+            profile_id = payload.get("profile")
+            if not profile_id:
+                self._set_headers(400)
+                self.wfile.write(json.dumps({"error": "Missing profile name"}).encode("utf-8"))
+                return
+            try:
+                success = self.engine.set_speed_profile(profile_id) if self.engine else False
+                if success:
+                    if self.ui_callback:
+                        self.ui_callback("profile_changed", profile_id)
+                    self._set_headers(200)
+                    self.wfile.write(json.dumps({"success": True, "profile": profile_id}).encode("utf-8"))
+                else:
+                    self._set_headers(400)
+                    self.wfile.write(json.dumps({"error": f"Invalid profile: {profile_id}"}).encode("utf-8"))
             except Exception as e:
                 self._set_headers(500)
                 self.wfile.write(json.dumps({"error": str(e)}).encode("utf-8"))
